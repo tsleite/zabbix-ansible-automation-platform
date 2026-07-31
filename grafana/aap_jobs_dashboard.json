@@ -1,0 +1,136 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_ZABBIX",
+      "label": "Zabbix",
+      "description": "Zabbix data source (alexanderzobnin-zabbix-app plugin)",
+      "type": "datasource",
+      "pluginId": "alexanderzobnin-zabbix-datasource",
+      "pluginName": "Zabbix"
+    }
+  ],
+  "__requires": [
+    { "type": "datasource", "id": "alexanderzobnin-zabbix-datasource", "name": "Zabbix", "version": ">=4.4.0" },
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": ">=10.0.0" },
+    { "type": "panel", "id": "stat", "name": "Stat", "version": "" },
+    { "type": "panel", "id": "timeseries", "name": "Time series", "version": "" },
+    { "type": "panel", "id": "text", "name": "Text", "version": "" }
+  ],
+  "title": "Ansible Automation Platform — Jobs Monitoring (Zabbix)",
+  "uid": "aap-jobs-zabbix",
+  "tags": ["ansible", "aap", "zabbix", "automation"],
+  "timezone": "browser",
+  "editable": true,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-24h", "to": "now" },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Last Job Status",
+      "id": 1,
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "${DS_ZABBIX}" },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "group": { "filter": "Ansible Automation Platform" },
+          "host": { "filter": "aap-controller" },
+          "item": { "filter": "Status Last Job - Ansible Automation Platform" }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "1": { "text": "SUCCESSFUL", "color": "green" }, "0": { "text": "FAILED", "color": "red" } } }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" }
+    },
+    {
+      "type": "stat",
+      "title": "Success Rate (24h)",
+      "id": 2,
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "${DS_ZABBIX}" },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "group": { "filter": "Ansible Automation Platform" },
+          "host": { "filter": "aap-controller" },
+          "item": { "filter": "Status Last Job - Ansible Automation Platform" },
+          "functions": [ { "def": { "name": "avg" }, "params": ["24h"] } ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 0.9 }, { "color": "green", "value": 0.99 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "type": "timeseries",
+      "title": "Job Status History (1 = Successful, 0 = Failed)",
+      "id": 3,
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "${DS_ZABBIX}" },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "0",
+          "group": { "filter": "Ansible Automation Platform" },
+          "host": { "filter": "aap-controller" },
+          "item": { "filter": "Status Last Job - Ansible Automation Platform" }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "fillOpacity": 20 },
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "text",
+      "title": "Last Failed Job — Playbook stdout (jobs.details)",
+      "id": 4,
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 6 },
+      "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "${DS_ZABBIX}" },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "2",
+          "group": { "filter": "Ansible Automation Platform" },
+          "host": { "filter": "aap-controller" },
+          "item": { "filter": "Details Receiver Jobs - Ansible Automation Platform" },
+          "textFilter": "",
+          "useCaptureGroups": false
+        }
+      ],
+      "options": { "mode": "markdown", "content": "" }
+    }
+  ],
+  "templating": { "list": [] },
+  "annotations": {
+    "list": [
+      {
+        "name": "AAP problems",
+        "datasource": { "type": "alexanderzobnin-zabbix-datasource", "uid": "${DS_ZABBIX}" },
+        "enable": true,
+        "iconColor": "red",
+        "queryType": "problems"
+      }
+    ]
+  }
+}
