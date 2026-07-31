@@ -1,0 +1,3 @@
+# Run the collector every 5 minutes.
+# Load the environment from a root-only file (chmod 600 /etc/aap2zabbix.env).
+*/5 * * * * . /etc/aap2zabbix.env && /usr/bin/python3 /opt/aap2zabbix/aap2zabbix.py >> /var/log/aap2zabbix.log 2>&1
