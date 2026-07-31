@@ -14,6 +14,9 @@ Automation without monitoring is a silent risk. When a scheduled playbook fails 
 
 ## 📊 Dashboards & Screenshots
 
+**Dashboard Zabbix**
+![Zabbix Latest data — job details](docs/img/1.png)
+
 **Grafana operations dashboard** (via the [Zabbix plugin for Grafana](https://grafana.com/grafana/plugins/alexanderzobnin-zabbix-app/)) — `grafana/aap_jobs_dashboard.json`:
 
 ![Grafana dashboard — AAP Jobs Monitoring](docs/img/grafana_dashboard.png)
