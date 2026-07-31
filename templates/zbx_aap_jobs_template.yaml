@@ -1,0 +1,87 @@
+#
+# Zabbix 6.0 template — Red Hat Ansible Automation Platform Jobs
+#
+# Import via: Data collection (Configuration) > Templates > Import
+#
+# Provides two trapper items fed by aap2zabbix.py (zabbix_sender):
+#   jobs.status   — 1 = Successful / 0 = Failed (value mapped)
+#   jobs.details  — job header + full playbook stdout
+#
+# Triggers:
+#   HIGH    — last job failed
+#   WARNING — no data received for 30m (the integration itself is broken)
+#
+zabbix_export:
+  version: '6.0'
+  date: '2026-07-31T12:00:00Z'
+  groups:
+    - uuid: a491e5a138e547b5bbe1f1cc6437f237
+      name: 'Templates/Applications'
+  templates:
+    - uuid: b130f63f67734f49b7be5f11e8547a6d
+      template: 'AAP Jobs by Zabbix trapper'
+      name: 'Red Hat Ansible Automation Platform Jobs'
+      description: |
+        Monitors the result of the most recent job executed on Red Hat Ansible
+        Automation Platform (Automation Controller).
+
+        Data is pushed by the aap2zabbix.py collector via zabbix_sender.
+        Repository: https://github.com/tsleite/zabbix-ansible-automation-platform
+      groups:
+        - name: 'Templates/Applications'
+      items:
+        - uuid: c03e28ba6a9849a8a749f7118f4039c4
+          name: 'Status Last Job - Ansible Automation Platform'
+          type: TRAP
+          key: jobs.status
+          delay: '0'
+          history: 7d
+          trends: 90d
+          description: 'Result of the last finished AAP job. 1 = Successful, 0 = Failed.'
+          valuemap:
+            name: 'AAP Job Status'
+          tags:
+            - tag: component
+              value: automation
+            - tag: service
+              value: aap
+          triggers:
+            - uuid: eb0d25d928bc4deba1696f5b12382d4c
+              expression: 'last(/AAP Jobs by Zabbix trapper/jobs.status)=0'
+              name: 'AAP: Last automation job FAILED'
+              priority: HIGH
+              manual_close: 'YES'
+              description: 'The most recent job on the Ansible Automation Platform finished with status Failed. Full playbook stdout is available in the jobs.details item.'
+              tags:
+                - tag: scope
+                  value: availability
+            - uuid: 213fabe2c9a747108d5ff940fec41868
+              expression: 'nodata(/AAP Jobs by Zabbix trapper/jobs.status,30m)=1'
+              name: 'AAP: No job data received for 30 minutes (integration broken?)'
+              priority: WARNING
+              description: 'The aap2zabbix.py collector has not sent data for 30 minutes. Check the cron job, the collector logs and connectivity to the AAP and Zabbix APIs.'
+              tags:
+                - tag: scope
+                  value: notice
+        - uuid: a21c28d628394e729355c8104e457e99
+          name: 'Details Receiver Jobs - Ansible Automation Platform'
+          type: TRAP
+          key: jobs.details
+          delay: '0'
+          history: 7d
+          trends: '0'
+          value_type: TEXT
+          description: 'Header (ID, name, playbook, started/finished, status) and full stdout of the last failed AAP job.'
+          tags:
+            - tag: component
+              value: automation
+            - tag: service
+              value: aap
+      valuemaps:
+        - uuid: f5d3b2c1a0e94d6c8b7a6f5e4d3c2b1a
+          name: 'AAP Job Status'
+          mappings:
+            - value: '1'
+              newvalue: Successful
+            - value: '0'
+              newvalue: Failed
